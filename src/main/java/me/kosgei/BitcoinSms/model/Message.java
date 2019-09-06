@@ -26,4 +26,9 @@ public class Message {
     public void setData(Data data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

@@ -1,8 +1,5 @@
 package me.kosgei.BitcoinSms.model;
 
-import javax.persistence.*;
-import java.util.Date;
-
 public class Bitcoin
 {
     private Data data;

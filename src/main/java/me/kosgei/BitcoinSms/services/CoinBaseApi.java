@@ -7,5 +7,5 @@ import retrofit2.http.GET;
 public interface CoinBaseApi {
 
     @GET("prices/spot?currency=USD")
-    public Call<Bitcoin> getBitcoin();
+    Call<Bitcoin> getBitcoin();
 }

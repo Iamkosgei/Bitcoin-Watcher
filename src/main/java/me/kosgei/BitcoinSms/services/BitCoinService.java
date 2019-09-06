@@ -1,50 +1,48 @@
 package me.kosgei.BitcoinSms.services;
 
-import me.kosgei.BitcoinSms.model.Bitcoin;
+import me.kosgei.BitcoinSms.controller.SMSSenderController;
+import me.kosgei.BitcoinSms.model.AtPayload;
 import me.kosgei.BitcoinSms.model.Data;
-import me.kosgei.BitcoinSms.repository.BitCoinRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import me.kosgei.BitcoinSms.model.Message;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
-public class BitCoinService  {
+public class BitCoinService {
+    private double currentPrice = 0;
 
-    @Autowired
-    BitCoinRepository bitCoinRepository;
+    public void saveBitcoin(Data data) {
+        AtPayload atPayload = new AtPayload("sandbox","+25471111111","");
+        SMSSenderController smsSenderController = new SMSSenderController();
 
-    public List<Data> getAllBitcoins()
-    {
-        List<Data> data = new ArrayList<>();
-        bitCoinRepository.findAll().forEach(data::add);
-        return data;
+        if (Double.parseDouble(data.getAmount()) == currentPrice) {
+            System.out.println("Price has not changed");
+        } else {
+            if (currentPrice == 0) {
+                atPayload.setMessage(getMessage("Starting price", data));
+                smsSenderController.sendSMS(atPayload);
+
+            } else if (Double.parseDouble(data.getAmount()) > currentPrice) {
+
+                atPayload.setMessage( getMessage("Price has gone up", data));
+                smsSenderController.sendSMS(atPayload);
+            } else {
+                atPayload.setMessage(getMessage("Price has dipped", data));
+                smsSenderController.sendSMS(atPayload);
+            }
+        }
+
     }
 
-    public void saveBitcoin(Data data)
+    private String getMessage(String message, Data data)
     {
-        if(getAllBitcoins().size() ==0)
-        {
-            bitCoinRepository.save(data);
-        }
-        else {
-            Data data1 = getAllBitcoins().get(0);
-            if (data1.getAmount().equals(data.getAmount()))
-            {
-                System.out.println("Price has not changed");
-            }
-            else if(Double.parseDouble(data1.getAmount()) > Double.parseDouble(data.getAmount())  ) {
-                bitCoinRepository.deleteAll();
-                bitCoinRepository.save(data);
-                System.out.println("Price has dipped");
-            }
-            else if (Double.parseDouble(data1.getAmount()) < Double.parseDouble(data.getAmount()) ){
-                bitCoinRepository.deleteAll();
-                bitCoinRepository.save(data);
-                System.out.println("Price has gone up");
-            }
-        }
+        Message newMessage = new Message(message,data);
+        currentPrice = Double.parseDouble(data.getAmount());
+        System.out.println(newMessage.getMessage() + " To KSH:" + formatCurrencyToKsh(Double.parseDouble(data.getAmount())));
+        return  newMessage.getMessage() + " To KSH:" + formatCurrencyToKsh(Double.parseDouble(data.getAmount()));
+    }
 
+    private String formatCurrencyToKsh(double amount) {
+        double exchangeRate = 103.86;
+        return String.format("%,.2f", amount * exchangeRate);
     }
 }
